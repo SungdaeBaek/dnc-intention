@@ -7,4 +7,4 @@
 * 본 프로그램은 Apache-2.0 으로 배포됩니다. 
 
 ## Dependencies 
-- 본 프로그램은 deepmind의 dnc를 포함하고 있습니다. (https://github.com/deepmind/dnc)
+- 본 프로그램은 thaihungle의 DMNC를 포함하고 있습니다. (https://github.com/thaihungle/DMNC)
