@@ -9,6 +9,6 @@ numpy==1.13.3
 protobuf==3.5.1
 six==1.11.0
 tensorflow-gpu==1.0.1
-Werkzeug==0.14.1
+Werkzeug==0.15.3
 requests
 googletrans
