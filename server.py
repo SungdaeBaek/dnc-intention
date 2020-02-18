@@ -17,6 +17,8 @@ import time
 import sys
 import os
 import requests
+import math
+from googletrans import Translator
 
 from dnc.dnc import DNC
 from recurrent_controller import RecurrentController
@@ -158,8 +160,20 @@ def mode_pre2(input_data, word_space_size, NE, ACT):
 		NE_data,
 		np.reshape(ACT_vec, (1, -1, ACT_space)))
 
+
+def keyword_check(input_sentence):
+	index_check = 0
+	for index, value in enumerate(keywords):
+		if keywords[index] in input_sentence:
+			index_check = index + 1
+	return index_check
+
+
 if __name__ == '__main__':
 
+	translator = Translator()
+	keywords = ['where', 'video', 'mail', 'schedule', 'address', 'know', 'weather', 'reserv', 'flight', 'shop',
+				'restaurant', 'wonder', 'door', 'news', 'movie', 'stock', 'summar', 'depress', 'sport', 'book']
 	memories = {}
 
 	dirname = os.path.dirname(__file__)
@@ -303,7 +317,7 @@ if __name__ == '__main__':
 					New_memory = init_M
 					m_count =0
 
-				x = input_["sentence"]
+				x = input_
 				x = x.lower().strip()
 				# act_num = input_["act"]
 				# x = x.replace("'", " ' ")
@@ -380,6 +394,7 @@ if __name__ == '__main__':
 					print("INPUT : " + str(input))
 					roomState = int(input["roomState"])
 					roomId = int(input["roomId"])
+					original_sentence = str(input["sentence"])
 
 					if roomState == 0:  # room create
 						memories[roomId] = [self.m_count, self.memory_S]
@@ -388,12 +403,17 @@ if __name__ == '__main__':
 						del memories[roomId]
 						return {"output": "true"}
 					elif roomState == 2:  # room chat
+						# only translate with roomState : 2 with sentence
+						translated_sentence = translator.translate(original_sentence, dest='en').text
+						print("Translated INPUT : " + str(translated_sentence))
 						# find memory from list based on roomId
 						# result, self.m_count, self.memory_S = conversate(input, self.m_count, self.memory_S)
 						result, memories[roomId][0], memories[roomId][1] = \
-							conversate(input, memories[roomId][0], memories[roomId][1])
-						print("OUTPUT : " + str(result))
-						return {"output": str(result)}
+							conversate(translated_sentence, memories[roomId][0], memories[roomId][1])
+						alt_result = keyword_check(translated_sentence)
+						print("OUTPUT : " + str(result) + ", ALT_OUTPUT : " + str(alt_result))
+						# return {"output": str(result)}
+						return {"output": str(math.floor((int(result) * 0.01) + int(alt_result)))}
 					else:
 						print("Unknown situation")
 
