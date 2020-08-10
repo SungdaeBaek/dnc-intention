@@ -6,9 +6,6 @@ CLASS : 'NORMAL', 'Map', 'YOUTUBE', 'WIKI', 'CALENDER', 'shopping', 'email', 'ho
 ####################
 """
 import warnings
-
-warnings.filterwarnings('ignore')
-
 import tensorflow as tf
 import numpy as np
 import pickle
@@ -26,6 +23,10 @@ from recurrent_controller import RecurrentController
 from grpc_wrapper.server import create_server, BaseModel
 from grpc_wrapper.client import create_client
 from my_utils import *
+import torch
+from transformers import *
+
+warnings.filterwarnings('ignore')
 
 
 if __name__ == '__main__':
@@ -37,8 +38,15 @@ if __name__ == '__main__':
 
 	dirname = os.path.dirname(__file__)
 	# ckpts_dir = os.path.join(dirname, 'checkpoints/')
-	pkl_data_file = os.path.join(dirname, 'intention_2019_10_13.pkl')
-	ckpt_path = os.path.join(dirname, 'checkpoints/intention/step-40000/model.ckpt')
+	pkl_data_file = os.path.join(dirname, 'output/emotionx_friends_eval_bert_2020_5_20.pkl')
+	ckpt_path = os.path.join(dirname, 'checkpoints/emotionx_friends_20200608/step-10000/model.ckpt')
+
+	llprint("Loading Data ... ")	
+	
+	#pretrained_weights = 'bert-base-uncased'
+    model = BertModel.from_pretrained('output/bert-base-uncased-model-local')
+    tokenizer = BertTokenizer.from_pretrained('output/bert-base-uncased-tokenizer-local')
+	
 	pkl_data = pickle.load(open(pkl_data_file, 'rb'))
 
 	# train_data = pkl_data['train']
@@ -46,11 +54,11 @@ if __name__ == '__main__':
 	# ACT_list = pkl_data['act']
 	# ENTITY = pkl_data['entity']
 
-	inv_dictionary = pkl_data['idx2w']
-	lexicon_dict = pkl_data['w2idx']
+	Input = pkl_data['input']
+    Target = pkl_data['target']
+	# inv_dictionary = pkl_data['idx2w']
+	# lexicon_dict = pkl_data['w2idx']
 	target_class = len(pkl_data['class'])
-
-	llprint("Loading Data ... ")
 
 	# dncinput = np.load(input_file)
 
@@ -63,10 +71,10 @@ if __name__ == '__main__':
 	# ACT_space_size = 4
 
 	batch_size = 1
-	input_size = len(lexicon_dict)
+	input_size = tokenizer.vocab_size
 	output_size = 512  ##autoencoder LSTM hidden unit dimension
 	sequence_max_length = 100
-	word_space_size = len(lexicon_dict)
+	word_space_size = tokenizer.vocab_size
 	words_count = 256
 	word_size = 128
 	read_heads = 4
@@ -175,7 +183,16 @@ if __name__ == '__main__':
 				if m_count == 10 :
 					New_memory = init_M
 					m_count =0
+				
+				try:
+					input_ids = torch.tensor([tokenizer.encode(input_)])
+					listed_input_ids = input_ids.tolist()[0]
 
+					pre_input = listed_input_ids
+				except:
+					pre_input = [0, 0, 0, 0, 0, 0]
+					
+				'''
 				x = input_
 				x = x.lower().strip()
 				# act_num = input_["act"]
@@ -191,6 +208,7 @@ if __name__ == '__main__':
 						user_num.append(lexicon_dict['<unk>'])
 
 				user_num = user_num + [lexicon_dict["<go>"]]
+				'''
 
 				'''
 				# get named entity from ner docker container
