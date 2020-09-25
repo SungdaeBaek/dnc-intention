@@ -8,7 +8,7 @@ nltk==3.4.5
 numpy==1.13.3
 protobuf==3.5.1
 six==1.11.0
-tensorflow-gpu==1.0.1
+tensorflow-gpu==1.15.4
 Werkzeug==0.15.3
 requests
 googletrans
