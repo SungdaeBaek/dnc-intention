@@ -192,45 +192,6 @@ if __name__ == '__main__':
 				except:
 					pre_input = [0, 0, 0, 0, 0, 0]
 					
-				'''
-				x = input_
-				x = x.lower().strip()
-				# act_num = input_["act"]
-				# x = x.replace("'", " ' ")
-				sentence_without_new_line = x
-				x = x.split(" ")
-
-				user_num = []
-				for tt in x:
-					try:
-						user_num.append(lexicon_dict[tt])
-					except KeyError:
-						user_num.append(lexicon_dict['<unk>'])
-
-				user_num = user_num + [lexicon_dict["<go>"]]
-				'''
-
-				'''
-				# get named entity from ner docker container
-				NES = ner_request(sentence_without_new_line)
-				#NES = ner_request(input_["sentence"])
-				#NE = ENTITY[m_count][ner_request(input_["sentence"])]
-				#NE = ENTITY[ner_request(input_["sentence"])]				 
-				try:
-					NE[0] = NES[0]
-					NE[1] = NES[1]
-					NE[2] = NES[2]
-				except:
-					NE = [23619, 23619, 23619]
-					
-				# get dialog act from classifier da final docker container
-				#ACT = ACT_list[m_count][da_request(input_["sentence"])]
-				#ACT = da_request(input_["sentence"])
-				#ACT = 1
-				# ACT = int(da_request(input_["sentence"]))
-				ACT = int(da_request(sentence_without_new_line))
-				'''
-
 				# input_data, seq_len, NE_data, ACT_data = mode_pre2(user_num, word_space_size, NE, ACT)
 				input_data, seq_len = mode_pre(user_num, word_space_size)
 				
@@ -271,7 +232,7 @@ if __name__ == '__main__':
 					print("INPUT : " + str(input))
 					roomState = int(input["roomState"])
 					roomId = int(input["roomId"])
-					original_sentence = str(input["sentence"])
+					original_sentence = str(input["sentence"]).strip()
 
 					if roomState == 0:  # room create
 						memories[roomId] = [self.m_count, self.memory_S]
