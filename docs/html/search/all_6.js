@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['memory_13',['Memory',['../classdnc_1_1memory_1_1_memory.html',1,'dnc::memory']]]
+  ['from_5fcheckpoint_20',['from_checkpoint',['../namespaceserver.html#ae61773bdfe306ec4e709fd3fa653b9f6',1,'server']]]
 ];

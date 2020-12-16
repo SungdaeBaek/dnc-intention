@@ -7,4 +7,7 @@
 * 본 프로그램은 LGPL-3.0 으로 배포됩니다. 
 
 ## Dependencies 
-- 본 프로그램은 thaihungle의 DMNC를 포함하고 있습니다. (https://github.com/thaihungle/DMNC)
+* 본 프로그램은 thaihungle의 DMNC를 포함하고 있습니다. (https://github.com/thaihungle/DMNC)
+
+## 설명서
+* 본 프로그램은 이 [고리](https://sungdaebaek.github.io/dnc-intention/html/index.html "고리") 에 설명되어 있습니다.

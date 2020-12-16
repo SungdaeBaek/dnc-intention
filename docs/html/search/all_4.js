@@ -1,9 +1,8 @@
 var searchData=
 [
-  ['generator_6',['Generator',['../classserver_1_1_generator.html',1,'server']]],
-  ['get_5fallocation_5fweighting_7',['get_allocation_weighting',['../classdnc_1_1memory_1_1_memory.html#a6153ecb850b007bd35668ecff657befc',1,'dnc::memory::Memory']]],
-  ['get_5fdirectional_5fweightings_8',['get_directional_weightings',['../classdnc_1_1memory_1_1_memory.html#a6d3116d5f908e2b27e11021d7efcfbb4',1,'dnc::memory::Memory']]],
-  ['get_5flookup_5fweighting_9',['get_lookup_weighting',['../classdnc_1_1memory_1_1_memory.html#af60939735f05f045ac75cad19280afaf',1,'dnc::memory::Memory']]],
-  ['get_5fnn_5foutput_5fsize_10',['get_nn_output_size',['../classdnc_1_1controller_1_1_base_controller.html#a2b4f9744bde2d05b49fbd3874b291da0',1,'dnc::controller::BaseController']]],
-  ['get_5foutputs_11',['get_outputs',['../classdnc_1_1dnc_1_1_d_n_c.html#a87c000d6cd4e19f509be1a248d0c3ffb',1,'dnc::dnc::DNC']]]
+  ['da_5frequest_13',['da_request',['../namespacemy__utils.html#a51567de8e1dde0c8e9810d9a0457e616',1,'my_utils']]],
+  ['dec_5ftarget_14',['dec_target',['../namespaceserver.html#ab69507e6f365056546a74c93a78a858b',1,'server']]],
+  ['dirname_15',['dirname',['../namespaceserver.html#a5a39f12d8502c4a47cced141dc4c4c1a',1,'server']]],
+  ['dnc_5finput_5fpre_16',['DNC_input_pre',['../namespacemy__utils.html#a5fb8273bd004d565ac7c89b22ebd06b2',1,'my_utils']]],
+  ['dnc_2dintention_17',['dnc-intention',['../index.html',1,'']]]
 ];

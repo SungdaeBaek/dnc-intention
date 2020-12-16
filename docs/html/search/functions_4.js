@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['initials_44',['initials',['../classdnc_1_1controller_1_1_base_controller.html#a1d467b5ba58c4e72b9ec91fdde976388',1,'dnc::controller::BaseController']]]
+  ['inv_5fdict_114',['inv_dict',['../namespacemy__utils.html#a277f9ea7c18c6efb4e54f9c1a85bee29',1,'my_utils']]]
 ];

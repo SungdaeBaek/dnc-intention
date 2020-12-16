@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['dnc_32',['DNC',['../classdnc_1_1dnc_1_1_d_n_c.html',1,'dnc::dnc']]]
+  ['recurrentcontroller_96',['RecurrentController',['../classrecurrent__controller_1_1_recurrent_controller.html',1,'recurrent_controller']]]
 ];

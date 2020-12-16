@@ -1,5 +1,11 @@
 # -*- coding: utf-8 -*-
 
+"""@package docstring
+Documentation for this module.
+ 
+This package is server code.
+"""
+
 """
 ############################
 CLASS : 'NORMAL', 'Map', 'YOUTUBE', 'WIKI', 'CALENDER', 'shopping', 'email', 'hotel', 'restaurant', 'CES', 'Flight'
@@ -30,6 +36,10 @@ warnings.filterwarnings('ignore')
 
 
 if __name__ == '__main__':
+	"""Documentation for a function.
+ 
+    Main function of this server.py.
+    """
 
 	translator = Translator()
 	keywords = ['where', 'video', 'mail', 'schedule', 'address', 'know', 'weather', 'reserv', 'flight', 'shop',
@@ -175,6 +185,10 @@ if __name__ == '__main__':
 			]
 
 			def conversate(input_, m_count, memory_S):
+				"""Documentation for a function.
+ 
+                This function handles conversate while considering input sequence.
+                """
 				if memory_S == None:
 					New_memory = init_M
 				else:
@@ -222,13 +236,19 @@ if __name__ == '__main__':
 				return pred_sent.replace('<unk>', ','), m_count+1, New_memory
 
 			class Generator(BaseModel):
+				"""Documentation for a class.
+	
+				This class makes generator using model to handle input request from client.
+				"""
 				def __init__(self, m_count = 0):
+					"""The constructor of a Generator class."""
 					self.m_count = m_count
 					self.before_sentence = ""
 					self.memory_S = None
 					print("stand by")
 
 				def send(self, input):
+					"""This method handles client request and return result."""
 					print("INPUT : " + str(input))
 					roomState = int(input["roomState"])
 					roomId = int(input["roomId"])
@@ -256,6 +276,10 @@ if __name__ == '__main__':
 						print("Unknown situation")
 
 			def run():
+				"""Documentation for a function.
+ 
+                This function runs server using generator class as model.
+                """
 				# port = int(sys.argv[1])
 				port = 50051
 

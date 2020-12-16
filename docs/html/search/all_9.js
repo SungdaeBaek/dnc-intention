@@ -1,6 +1,9 @@
 var searchData=
 [
-  ['read_18',['read',['../classdnc_1_1memory_1_1_memory.html#a83735c28400f1f2b381152450d2f0d02',1,'dnc::memory::Memory']]],
-  ['recurrentcontroller_19',['RecurrentController',['../classrecurrent__controller_1_1_recurrent_controller.html',1,'recurrent_controller']]],
-  ['restore_20',['restore',['../classdnc_1_1dnc_1_1_d_n_c.html#a341982a37eb4d155c5c79b5b5205357d',1,'dnc::dnc::DNC']]]
+  ['init_5fm_25',['init_M',['../namespaceserver.html#af34226dfc431c0624fab8e6cbf7775fa',1,'server']]],
+  ['input_26',['Input',['../namespaceserver.html#a12e99f86dbf4ef6516b6a2f6b66a0f3d',1,'server']]],
+  ['input_5fsize_27',['input_size',['../namespaceserver.html#aee214a971076f7d94138a14255d9d570',1,'server']]],
+  ['inputsen_28',['inputsen',['../namespaceserver.html#ac1c8dc9f62c11e77bca2fad393277774',1,'server']]],
+  ['inv_5fdict_29',['inv_dict',['../namespacemy__utils.html#a277f9ea7c18c6efb4e54f9c1a85bee29',1,'my_utils']]],
+  ['iterations_30',['iterations',['../namespaceserver.html#ab20a6cd8e90ec561d9c446a335b1063d',1,'server']]]
 ];

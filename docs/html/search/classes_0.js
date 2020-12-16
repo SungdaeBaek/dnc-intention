@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['basecontroller_31',['BaseController',['../classdnc_1_1controller_1_1_base_controller.html',1,'dnc::controller']]]
+  ['generator_95',['Generator',['../classserver_1_1_generator.html',1,'server']]]
 ];
