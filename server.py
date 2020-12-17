@@ -17,8 +17,8 @@ default_directory = './save'
 electra = ElectraModel.from_pretrained("monologg/koelectra-base-v3-discriminator")
 tokenizer = ElectraTokenizer.from_pretrained("monologg/koelectra-base-v3-discriminator")
 
-tokenizer.add_special_tokens({"additional_special_tokens": ["<turn>", "<description>"]})
-electra.resize_token_embeddings(len(tokenizer))
+#tokenizer.add_special_tokens({"additional_special_tokens": ["<turn>", "<description>"]})
+#electra.resize_token_embeddings(len(tokenizer))
 
 
 class MTGRU(nn.Module):
@@ -124,6 +124,7 @@ class YourModel(BaseModel):
         # input & output can be dictionary or array
         #output = self.model.run(input["name"])
         output = self.test([input["sentence"]])
+        output = label_change(output)
         return {"output": str(output)}
         
     def test(self, TEXT):
@@ -151,7 +152,7 @@ class YourModel(BaseModel):
         return pred
         
 
-def load_checkpoint(directory, filename='save0.tar.gz'):
+def load_checkpoint(directory, filename='save_20201120_intention.tar.gz'):
 
     model_filename = os.path.join(directory, filename)
     if os.path.exists(model_filename):
@@ -161,6 +162,10 @@ def load_checkpoint(directory, filename='save0.tar.gz'):
     else:
         print("=> checkpoint does not exist.")
         return None
+
+def label_change(input_label):
+    labels = [20, 2, 18, 11, 3, 1, 13, 17, 8, 16, 9, 19, 14, 7, 5, 6, 15, 10, 4, 12, 0]
+    return labels[int(input_label)]
 
 
 def run():
@@ -175,4 +180,7 @@ def run():
 
 
 if __name__ =="__main__":
+
+    keywords = ['where', 'video', 'mail', 'schedule', 'address', 'know', 'weather', 'reserv', 'flight', 'shop',
+				'restaurant', 'wonder', 'door', 'news', 'movie', 'stock', 'summar', 'depress', 'sport', 'book']
     run()
