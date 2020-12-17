@@ -1,296 +1,178 @@
-# -*- coding: utf-8 -*-
-
-"""@package docstring
-Documentation for this module.
- 
-This package is server code.
-"""
-
-"""
-############################
-CLASS : 'NORMAL', 'Map', 'YOUTUBE', 'WIKI', 'CALENDER', 'shopping', 'email', 'hotel', 'restaurant', 'CES', 'Flight'
-####################
-"""
-import warnings
-import tensorflow as tf
-import numpy as np
-import pickle
-import getopt
-import time
-import sys
-import os
-import requests
-import math
-from googletrans import Translator
-
-from dnc.dnc import DNC
-from recurrent_controller import RecurrentController
-
 from grpc_wrapper.server import create_server, BaseModel
-from grpc_wrapper.client import create_client
-from my_utils import *
+import time
+import numpy as np
+import pandas as pd
 import torch
-from transformers import *
+import torch.nn as nn
+from torch.utils.data import Dataset, DataLoader
+from transformers import ElectraModel, ElectraTokenizer
+import torch.nn.functional as F
+import os
 
-warnings.filterwarnings('ignore')
+os.environ["CUDA_VISIBLE_DEVICES"]= "0"
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu") 
+
+default_directory = './save'
+
+electra = ElectraModel.from_pretrained("monologg/koelectra-base-v3-discriminator")
+tokenizer = ElectraTokenizer.from_pretrained("monologg/koelectra-base-v3-discriminator")
+
+tokenizer.add_special_tokens({"additional_special_tokens": ["<turn>", "<description>"]})
+electra.resize_token_embeddings(len(tokenizer))
 
 
-if __name__ == '__main__':
-	"""Documentation for a function.
- 
-    Main function of this server.py.
-    """
+class MTGRU(nn.Module):
 
-	translator = Translator()
-	keywords = ['where', 'video', 'mail', 'schedule', 'address', 'know', 'weather', 'reserv', 'flight', 'shop',
-				'restaurant', 'wonder', 'door', 'news', 'movie', 'stock', 'summar', 'depress', 'sport', 'book']
-	memories = {}
+    def __init__(self, d_model = 128, device=None):
+        super(MTGRU, self).__init__()
+        torch.cuda.set_device(device)
 
-	dirname = os.path.dirname(__file__)
-	# ckpts_dir = os.path.join(dirname, 'checkpoints/')
-	pkl_data_file = os.path.join(dirname, 'output/emotionx_friends_eval_bert_2020_5_20.pkl')
-	ckpt_path = os.path.join(dirname, 'checkpoints/emotionx_friends_20200608/step-10000/model.ckpt')
+        self.d_model = d_model
+        self.tau1 = nn.Parameter(torch.tensor([1.0]),requires_grad=True)
+        self.tau2 = nn.Parameter(torch.tensor([1.2]),requires_grad=True)
+        self.grucell_1 = nn.GRUCell(768, self.d_model)
+        self.grucell_2 = nn.GRUCell(768+self.d_model, self.d_model)
+    
+    def forward(self, encoder_outputs):
 
-	llprint("Loading Data ... ")	
-	
-	#pretrained_weights = 'bert-base-uncased'
-    model = BertModel.from_pretrained('output/bert-base-uncased-model-local')
-    tokenizer = BertTokenizer.from_pretrained('output/bert-base-uncased-tokenizer-local')
-	
-	pkl_data = pickle.load(open(pkl_data_file, 'rb'))
+        batch_size = encoder_outputs.size(0)
 
-	# train_data = pkl_data['train']
+        h1 = torch.zeros(batch_size, self.d_model).cuda()
+        h2 = torch.zeros(batch_size, self.d_model).cuda()
 
-	# ACT_list = pkl_data['act']
-	# ENTITY = pkl_data['entity']
+        gru_output_1 = []
+        gru_output_2 = []
 
-	Input = pkl_data['input']
-    Target = pkl_data['target']
-	# inv_dictionary = pkl_data['idx2w']
-	# lexicon_dict = pkl_data['w2idx']
-	target_class = len(pkl_data['class'])
+        for i in range(encoder_outputs.size(1)):
+            h1_ = self.grucell_1(encoder_outputs[:,i], h1)
+            h1 = (1 - 1/self.tau1) * h1 + 1/self.tau1 * h1_
+            h2_ = self.grucell_2(torch.cat((encoder_outputs[:,i], h1),1), h2)
+            h2 = (1 - 1/self.tau2) * h2 + 1/self.tau2 * h2_
+            gru_output_1.append(h1)
+            gru_output_2.append(h2)
+        
+        gru_output_1 = torch.stack(gru_output_1).transpose(0,1) # (batch_size, seq_len, gru_hidden_size)
+        gru_output_2 = torch.stack(gru_output_2).transpose(0,1) # (batch_size, seq_len, gru_hidden_size)
+        gru_output = torch.cat((gru_output_1, gru_output_2), 2)
+        gru_output = F.dropout(gru_output, p=0.5)
 
-	# dncinput = np.load(input_file)
+        return gru_output
 
-#	 inv_dictionary = idx2w = pkl_data['idx2w']
 
-	llprint("Done!\n")
+class Mymodel(nn.Module):
 
-	### NE_space_size , ACT_space_size
-	# NE_space_size = len(lexicon_dict)
-	# ACT_space_size = 4
+    def __init__(self, electra, d_model = 128, device = None):
+        super(Mymodel, self).__init__()
+        torch.cuda.set_device(device)
+        #self.bert = bert
+        self.electra = electra
+        self.mtgru = torch.jit.script(MTGRU(d_model, device = device))
+        self.classifier = nn.Linear(d_model*2, 21)
+    
+       
+    def forward(self, input_ids, token_num_list):
+        batch_size = input_ids.size(0)
+        input_ids_mask = input_ids != 0
 
-	batch_size = 1
-	input_size = tokenizer.vocab_size
-	output_size = 512  ##autoencoder LSTM hidden unit dimension
-	sequence_max_length = 100
-	word_space_size = tokenizer.vocab_size
-	words_count = 256
-	word_size = 128
-	read_heads = 4
+        encoder_outputs_ = self.electra(input_ids, attention_mask=input_ids_mask.long()) # 1 for not MASKED
+        encoder_outputs = encoder_outputs_[0]
+        
+        gru_output = self.mtgru(encoder_outputs)
 
-	iterations = 100000
-	start_step = 0	##woo
+        out_list = []
+        for bn in range(batch_size):
+            out_ = gru_output[bn][token_num_list[bn]-1]
+            out_list.append(out_)
 
-	options, _ = getopt.getopt(sys.argv[1:], '', ['checkpoint=', 'iterations=', 'start='])
+        gru_output_ = torch.stack(out_list)
 
-	hidden_size = 512
-	mlp_input = output_size
-	llprint("Done!\n")
+        output = self.classifier(gru_output_)
+        #loss = criterion(output, labels)
 
-	for opt in options:
-		if opt[0] == '--checkpoint':
-			from_checkpoint = opt[1]
-		elif opt[0] == '--iterations':
-			iterations = int(opt[1])
-		elif opt[0] == '--start':
-			start_step = int(opt[1])
+        return output
 
-	graph = tf.Graph()
-	config = tf.ConfigProto()
-	config.gpu_options.allow_growth = True
-	with graph.as_default():
-		with tf.Session(graph=graph, config=config) as session:
 
-			llprint("Building Computational Graph ... ")
+class WoodongModel:
+    def __init__(self):
 
-			ncomputer = DNC(
-				RecurrentController,
-				input_size,
-				output_size,
-				sequence_max_length,
-				words_count,
-				word_size,
-				read_heads,
-				batch_size,
-				# NE_space_size,
-				# ACT_space_size
-			)
+        print("init")
 
-			output, _ = ncomputer.get_outputs()
+    def run(self, name):
+        return {
+            "sentence": "Hi, "+name
+        }
 
-			dec_target = tf.placeholder(tf.int32)
 
-			target_onehot = tf.one_hot(dec_target, target_class)
+class YourModel(BaseModel):
+    def __init__(self):
 
-			with tf.variable_scope('logit'):
-				W_logit = tf.get_variable('W_logit', [output_size, target_class])
-				b_logit = tf.get_variable('b_logit', [target_class])
-				out_logit = tf.matmul(tf.expand_dims(output[0, -1, :], axis=0), W_logit) + b_logit
+        #self.model = WoodongModel()
+        self.my_model = Mymodel(electra, device = 0)
+        self.my_model.to(device)
+        checkpoint = load_checkpoint(default_directory)
+        if not checkpoint:
+            pass
+        else:
+            self.my_model.load_state_dict(checkpoint['state_dict']) 
+            
+        # while True:
+        #    TEXT = [input('입력 : ')]
+        #    test(TEXT)
 
-			#loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=out_logit, labels=target_onehot))
+    def send(self, input):
+        print(input)
+        # input & output can be dictionary or array
+        #output = self.model.run(input["name"])
+        output = self.test([input["sentence"]])
+        return {"output": str(output)}
+        
+    def test(self, TEXT):
+        self.my_model.eval() 
 
-			#gradients = optimizer.compute_gradients(loss)
+        text = TEXT
 
-			llprint("Done!\n")
 
-			llprint("Initializing Variables ... ")
-			"""
-			##세션 시작########################################################
-			"""
+        encoded_list = [tokenizer.encode(t, add_special_tokens=True) for t in text]
+        padded_list =  [e + [0] * (512-len(e)) for e in encoded_list]
+        token_num_list_ = []
+        for enc_list in encoded_list:
+            token_num_list_.append(len(enc_list))
+        token_num_list = torch.tensor(token_num_list_)   
 
-			session.run(tf.global_variables_initializer())
-			llprint("Done!\n")
-			var_list = tf.trainable_variables()
-			saver = tf.train.Saver(var_list=var_list)
-			print([v.name for v in tf.trainable_variables()])
+        sample = torch.tensor(padded_list)
+        sample = sample.to(device)
+        outputs = self.my_model.forward(sample, token_num_list)
+        logits = outputs
 
-			saver.restore(session, ckpt_path)
 
-			last_100_losses = []
+        pred = torch.argmax(F.softmax(logits, dim=1), dim=1)
+        pred = str(pred.item())
+        #print(pred)
+        return pred
+        
 
-			start = 0 if start_step == 0 else start_step + 1
-			end = start_step + iterations + 1
+def load_checkpoint(directory, filename='save0.tar.gz'):
 
-			start_time_100 = time.time()
-			end_time_100 = None
-			avg_100_time = 0.
-			avg_counter = 0
+    model_filename = os.path.join(directory, filename)
+    if os.path.exists(model_filename):
+        print("=> loading checkpoint")
+        state = torch.load(model_filename)
+        return state
+    else:
+        print("=> checkpoint does not exist.")
+        return None
 
-			inputsen = []
-			predsen = []
-			lenth = 100
 
-			overlap_num = 0
-			before_out = []
-			init_M = [
-				np.ones([batch_size, words_count, word_size]) * 1e-6,
-				np.zeros([batch_size, words_count]),
-				np.zeros([batch_size, words_count]),
-				np.zeros([batch_size, words_count, words_count]),
-				np.ones([batch_size, words_count]) * 1e-6,
-				np.ones([batch_size, words_count, read_heads]) * 1e-6,
-				np.ones([batch_size, word_size, read_heads]) * 1e-6,
+def run():
+    model = YourModel()
+    server = create_server(model, ip="[::]", port=50051, max_workers=5)
+    server.start()
+    try:
+        while True:
+            time.sleep(60 * 60 * 24)
+    except KeyboardInterrupt:
+        server.stop(0)
 
-			]
 
-			def conversate(input_, m_count, memory_S):
-				"""Documentation for a function.
- 
-                This function handles conversate while considering input sequence.
-                """
-				if memory_S == None:
-					New_memory = init_M
-				else:
-					New_memory = memory_S
-
-				if m_count == 10 :
-					New_memory = init_M
-					m_count =0
-				
-				try:
-					input_ids = torch.tensor([tokenizer.encode(input_)])
-					listed_input_ids = input_ids.tolist()[0]
-
-					pre_input = listed_input_ids
-				except:
-					pre_input = [0, 0, 0, 0, 0, 0]
-					
-				# input_data, seq_len, NE_data, ACT_data = mode_pre2(user_num, word_space_size, NE, ACT)
-				input_data, seq_len = mode_pre(user_num, word_space_size)
-				
-				outputvec, memory = session.run([
-					out_logit, ncomputer.check_memory
-				], feed_dict={
-					#dec_in: np.expand_dims(np.expand_dims(dec_input, axis=1), axis=0),
-					ncomputer.input_data: input_data,
-					ncomputer.sequence_length: seq_len,
-					ncomputer.m_0: New_memory[0],
-					ncomputer.m_1: New_memory[1],
-					ncomputer.m_2: New_memory[2],
-					ncomputer.m_3: New_memory[3],
-					ncomputer.m_4: New_memory[4],
-					ncomputer.m_5: New_memory[5],
-					ncomputer.m_6: New_memory[6],
-					# ncomputer.input_NE0: NE_data[0],
-					# ncomputer.input_NE1: NE_data[1],
-					# ncomputer.input_NE2: NE_data[2],
-					# ncomputer.input_ACT: ACT_data
-				})
-				intent_list = pkl_data['class']
-				New_memory = memory
-				pred_index = outputvec[0].argmax()
-				#pred_sent = ("%s\t%4f" %(intent_list[pred_index],outputvec[0][pred_index]))
-				pred_sent = ("%s" %(pred_index))
-
-				return pred_sent.replace('<unk>', ','), m_count+1, New_memory
-
-			class Generator(BaseModel):
-				"""Documentation for a class.
-	
-				This class makes generator using model to handle input request from client.
-				"""
-				def __init__(self, m_count = 0):
-					"""The constructor of a Generator class."""
-					self.m_count = m_count
-					self.before_sentence = ""
-					self.memory_S = None
-					print("stand by")
-
-				def send(self, input):
-					"""This method handles client request and return result."""
-					print("INPUT : " + str(input))
-					roomState = int(input["roomState"])
-					roomId = int(input["roomId"])
-					original_sentence = str(input["sentence"]).strip()
-
-					if roomState == 0:  # room create
-						memories[roomId] = [self.m_count, self.memory_S]
-						return {"output": "true"}
-					elif roomState == 1:  # room remove
-						del memories[roomId]
-						return {"output": "true"}
-					elif roomState == 2:  # room chat
-						# only translate with roomState : 2 with sentence
-						translated_sentence = translator.translate(original_sentence, dest='en').text
-						print("Translated INPUT : " + str(translated_sentence))
-						# find memory from list based on roomId
-						# result, self.m_count, self.memory_S = conversate(input, self.m_count, self.memory_S)
-						result, memories[roomId][0], memories[roomId][1] = \
-							conversate(translated_sentence, memories[roomId][0], memories[roomId][1])
-						alt_result = keyword_check(translated_sentence)
-						print("OUTPUT : " + str(result) + ", ALT_OUTPUT : " + str(alt_result))
-						# return {"output": str(result)}
-						return {"output": str(math.floor((int(result) * 0.01) + int(alt_result)))}
-					else:
-						print("Unknown situation")
-
-			def run():
-				"""Documentation for a function.
- 
-                This function runs server using generator class as model.
-                """
-				# port = int(sys.argv[1])
-				port = 50051
-
-				model = Generator()
-
-				server = create_server(model, ip="[::]", port=port)
-				server.start()
-				try:
-					while True:
-						time.sleep(60 * 60 * 24)
-				except KeyboardInterrupt:
-					server.stop(0)
-
-			run()
+if __name__ =="__main__":
+    run()
