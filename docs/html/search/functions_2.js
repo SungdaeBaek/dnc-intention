@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['da_5frequest_111',['da_request',['../namespacemy__utils.html#a51567de8e1dde0c8e9810d9a0457e616',1,'my_utils']]],
-  ['dnc_5finput_5fpre_112',['DNC_input_pre',['../namespacemy__utils.html#a5fb8273bd004d565ac7c89b22ebd06b2',1,'my_utils']]]
+  ['label_5fchange_22',['label_change',['../namespaceserver.html#a22c9220d3824bfa5919af50d2e5f5ec9',1,'server']]],
+  ['load_5fcheckpoint_23',['load_checkpoint',['../namespaceserver.html#ae18c198a82a9520b711fed88fca6ab2e',1,'server']]]
 ];

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['generator_36',['Generator',['../classserver_1_1_generator.html',1,'server']]]
+  ['yourmodel_18',['YourModel',['../classserver_1_1_your_model.html',1,'server']]]
 ];

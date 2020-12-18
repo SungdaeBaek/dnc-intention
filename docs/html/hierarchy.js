@@ -1,9 +1,13 @@
 var hierarchy =
 [
-    [ "BaseController", null, [
-      [ "recurrent_controller.RecurrentController", "classrecurrent__controller_1_1_recurrent_controller.html", null ]
+    [ "Module", null, [
+      [ "Intent_analysis.MTGRU", "class_intent__analysis_1_1_m_t_g_r_u.html", null ],
+      [ "Intent_analysis.Mymodel", "class_intent__analysis_1_1_mymodel.html", null ],
+      [ "server.MTGRU", "classserver_1_1_m_t_g_r_u.html", null ],
+      [ "server.Mymodel", "classserver_1_1_mymodel.html", null ]
     ] ],
+    [ "server.WoodongModel", "classserver_1_1_woodong_model.html", null ],
     [ "BaseModel", null, [
-      [ "server.Generator", "classserver_1_1_generator.html", null ]
+      [ "server.YourModel", "classserver_1_1_your_model.html", null ]
     ] ]
 ];

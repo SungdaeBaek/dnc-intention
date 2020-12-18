@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['inv_5fdict_114',['inv_dict',['../namespacemy__utils.html#a277f9ea7c18c6efb4e54f9c1a85bee29',1,'my_utils']]]
+  ['send_25',['send',['../classserver_1_1_your_model.html#a5ce3e50c282c29af84f0d8be2cc4da83',1,'server::YourModel']]]
 ];

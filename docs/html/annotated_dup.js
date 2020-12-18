@@ -1,9 +1,8 @@
 var annotated_dup =
 [
-    [ "recurrent_controller", null, [
-      [ "RecurrentController", "classrecurrent__controller_1_1_recurrent_controller.html", "classrecurrent__controller_1_1_recurrent_controller" ]
+    [ "Intent_analysis", null, [
+      [ "MTGRU", "class_intent__analysis_1_1_m_t_g_r_u.html", "class_intent__analysis_1_1_m_t_g_r_u" ],
+      [ "Mymodel", "class_intent__analysis_1_1_mymodel.html", "class_intent__analysis_1_1_mymodel" ]
     ] ],
-    [ "server", null, [
-      [ "Generator", "classserver_1_1_generator.html", "classserver_1_1_generator" ]
-    ] ]
+    [ "server", "namespaceserver.html", "namespaceserver" ]
 ];
