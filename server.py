@@ -1,3 +1,9 @@
+"""@package docstring
+Documentation for this module.
+ 
+This package is server code.
+"""
+
 from grpc_wrapper.server import create_server, BaseModel
 import time
 import numpy as np
@@ -22,8 +28,13 @@ tokenizer = ElectraTokenizer.from_pretrained("monologg/koelectra-base-v3-discrim
 
 
 class MTGRU(nn.Module):
+    """Documentation for a class.
+	
+    This class makes a custom MTGRU based on an original MTGRU.
+    """
 
     def __init__(self, d_model = 128, device=None):
+        """The constructor of a MTGRU class."""
         super(MTGRU, self).__init__()
         torch.cuda.set_device(device)
 
@@ -34,6 +45,7 @@ class MTGRU(nn.Module):
         self.grucell_2 = nn.GRUCell(768+self.d_model, self.d_model)
     
     def forward(self, encoder_outputs):
+        """This method handles a custom forward computation."""
 
         batch_size = encoder_outputs.size(0)
 
@@ -60,8 +72,13 @@ class MTGRU(nn.Module):
 
 
 class Mymodel(nn.Module):
+    """Documentation for a class.
+	
+    This class represent my model with a customed MTGRU.
+    """
 
     def __init__(self, electra, d_model = 128, device = None):
+        """The constructor of a Mymodel class."""
         super(Mymodel, self).__init__()
         torch.cuda.set_device(device)
         #self.bert = bert
@@ -71,6 +88,7 @@ class Mymodel(nn.Module):
     
        
     def forward(self, input_ids, token_num_list):
+        """This method handles a custom forward computation."""
         batch_size = input_ids.size(0)
         input_ids_mask = input_ids != 0
 
@@ -93,18 +111,29 @@ class Mymodel(nn.Module):
 
 
 class WoodongModel:
+    """Documentation for a class.
+	
+    This class is example to utilize GRPC wrapper.
+    """
     def __init__(self):
+        """The constructor of a WoodongModel class."""
 
         print("init")
 
     def run(self, name):
+        """This method handles request with given name."""
         return {
             "sentence": "Hi, "+name
         }
 
 
 class YourModel(BaseModel):
+    """Documentation for a class.
+	
+    This class uses Mymodel with GRPC wrapper.
+    """
     def __init__(self):
+        """The constructor of a YourModel class."""
 
         #self.model = WoodongModel()
         self.my_model = Mymodel(electra, device = 0)
@@ -120,6 +149,7 @@ class YourModel(BaseModel):
         #    test(TEXT)
 
     def send(self, input):
+        """This method handles request with given input."""
         print(input)
         # input & output can be dictionary or array
         #output = self.model.run(input["name"])
@@ -128,6 +158,7 @@ class YourModel(BaseModel):
         return {"output": str(output)}
         
     def test(self, TEXT):
+        """This method run Mymodel instance with TEXT as input."""
         self.my_model.eval() 
 
         text = TEXT
@@ -153,6 +184,10 @@ class YourModel(BaseModel):
         
 
 def load_checkpoint(directory, filename='save_20201120_intention.tar.gz'):
+    """Documentation for a function.
+ 
+    This function loads checkpoint with filename.
+    """
 
     model_filename = os.path.join(directory, filename)
     if os.path.exists(model_filename):
@@ -164,11 +199,19 @@ def load_checkpoint(directory, filename='save_20201120_intention.tar.gz'):
         return None
 
 def label_change(input_label):
+    """Documentation for a function.
+ 
+    This function corrects model side class number and service side class number.
+    """
     labels = [20, 2, 18, 11, 3, 1, 13, 17, 8, 16, 9, 19, 14, 7, 5, 6, 15, 10, 4, 12, 0]
     return labels[int(input_label)]
 
 
 def run():
+    """Documentation for a function.
+ 
+    This function start server with GRPC wrapper.
+    """
     model = YourModel()
     server = create_server(model, ip="[::]", port=50051, max_workers=5)
     server.start()
@@ -180,6 +223,10 @@ def run():
 
 
 if __name__ =="__main__":
+    """Documentation for a function.
+ 
+    Main function of this server.py.
+    """
 
     keywords = ['where', 'video', 'mail', 'schedule', 'address', 'know', 'weather', 'reserv', 'flight', 'shop',
 				'restaurant', 'wonder', 'door', 'news', 'movie', 'stock', 'summar', 'depress', 'sport', 'book']
