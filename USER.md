@@ -4,8 +4,8 @@
 * 이 설명서는 사용자가 이 프로그램을 운용하기 위한 설명서입니다.
 
 ## 사전작업
-* Ubuntu 16.04.6 LTE 및 Windows 10 에서 작동합니다.
-* Python 3.5 에서 작동합니다.
+* Ubuntu 18.04 및 Windows 10 에서 작동합니다.
+* Python 3.6 에서 작동합니다.
 
 ## 설치
 * 상위 경로의 "requirements.txt" 를 python 환경에서 pip로 설치합니다.
